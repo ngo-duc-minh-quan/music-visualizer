@@ -1,0 +1,26 @@
+# Bỏ qua thư mục môi trường ảo
+.venv/
+venv/
+env/
+
+# Bỏ qua file rác Python
+__pycache__/
+*.pyc
+
+# Bỏ qua các file nhạc/video đã tải về (để không nặng GitHub)
+separated_files/
+*.mp3
+*.wav
+*.webm
+
+# Bỏ qua file cookies (BẢO MẬT: Tuyệt đối không public cái này)
+cookies.txt
+
+# Bỏ qua file lịch sử/cấu hình của VS Code
+.vscode/
+# Bỏ qua file thực thi (Nặng)
+*.exe
+
+# Bỏ qua file tạm, file lỗi
+temp*
+*.part

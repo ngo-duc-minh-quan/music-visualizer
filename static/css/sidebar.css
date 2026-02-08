@@ -1,0 +1,221 @@
+/* ========================================= */
+/* 4. SIDE PANEL (MỚI: Bảng Tìm kiếm & Lịch sử) */
+/* ========================================= */
+.side-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50vw;         
+    min-width: 350px;  
+    max-width: 600px;
+    height: 100%;
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 100;
+    padding: 20px;
+    transform: translateX(100%); /* Mặc định ẩn sang phải */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    overflow-y: auto;  /* Cho phép cuộn dọc nếu nội dung dài */
+    
+    /* Làm đẹp thanh cuộn (Scrollbar) cho Webkit (Chrome/Cốc Cốc) */
+    scrollbar-width: thin;
+    scrollbar-color: #ff416c #222;
+}
+/* Trang trí thanh cuộn cho đẹp hơn */
+#sidePanel::-webkit-scrollbar {
+    width: 6px;
+}
+#sidePanel::-webkit-scrollbar-track {
+    background: #222;
+}
+#sidePanel::-webkit-scrollbar-thumb {
+    background-color: #ff416c;
+    border-radius: 10px;
+}
+.side-panel.open {
+    transform: translateX(0); /* Hiện ra khi có class .open */
+}
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #fff;
+}
+
+#closePanelBtn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* Ô tìm kiếm */
+.search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.search-box input {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    outline: none;
+}
+
+.search-box button {
+    background: #ff416c;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.search-box button:hover { opacity: 0.9; }
+/* Danh sách lịch sử */
+.history-list {
+    flex: 1;
+    overflow-y: auto; /* Cho phép cuộn */
+}
+
+.history-list h4 {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.history-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    background: rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.history-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.history-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+/* --- STYLE ĐỀ XUẤT NHẠC (UPDATE: 2 CỘT TO & ĐẸP) --- */
+.recommend-section {
+    margin: 20px 0 30px 0;
+    width: 100%;
+    /* Bỏ giới hạn chiều rộng để nó bung ra hết cỡ trong sidebar */
+}
+
+.recommend-grid {
+    display: grid;
+    /* CHỈNH SỬA QUAN TRỌNG: Chia thành 2 cột bằng nhau để hình to */
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; /* Khoảng cách giữa các ô */
+}
+
+.song-card {
+    background: rgba(255, 255, 255, 0.08); /* Màu nền sáng hơn chút */
+    border-radius: 12px; /* Bo góc tròn trịa hơn */
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy nhẹ */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Bóng đổ nhẹ */
+}
+
+.song-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px) scale(1.02); /* Phóng to nhẹ khi di chuột */
+    box-shadow: 0 8px 20px rgba(255, 65, 108, 0.4); /* Bóng sáng màu hồng */
+    border-color: #ff416c; /* Viền đổi màu */
+}
+
+.song-card img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.song-card .song-title {
+    font-size: 14px; /* Chữ to hơn bản cũ (13px) */
+    color: #fff;
+    font-weight: 600; /* Chữ đậm hơn */
+    line-height: 1.4;
+    
+    /* Cắt bớt nếu tên quá dài (giữ 2 dòng) */
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+/* --- STYLE CHO THANH CHỌN THỂ LOẠI --- */
+.genre-selector {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto; /* Cho phép lướt ngang nếu màn hình bé */
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    scrollbar-width: none; /* Ẩn thanh cuộn cho đẹp */
+}
+
+.genre-selector::-webkit-scrollbar {
+    display: none;
+}
+
+.genre-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ccc;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap; /* Không cho chữ xuống dòng */
+    transition: all 0.3s ease;
+}
+
+.genre-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+/* Khi nút được chọn */
+.genre-btn.active {
+    background: #ff416c; /* Màu hồng chủ đạo */
+    border-color: #ff416c;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(255, 65, 108, 0.4);
+}

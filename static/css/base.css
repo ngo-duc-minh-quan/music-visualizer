@@ -1,0 +1,38 @@
+/* ===== 1. RESET & CORE ===== */
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+}
+
+/* Hiệu ứng nền cầu vồng chuyển động */
+.background-animate {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(-45deg, #1a1a1a, #2c3e50, #000000);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    z-index: -2;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+/* ===== 2. LAYOUT CHÍNH ===== */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}

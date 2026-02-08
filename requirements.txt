@@ -1,0 +1,7 @@
+flask
+requests
+yt-dlp
+openai-whisper
+pydub
+torch
+scipy
