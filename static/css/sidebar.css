@@ -1,221 +1,172 @@
 /* ========================================= */
-/* 4. SIDE PANEL (MỚI: Bảng Tìm kiếm & Lịch sử) */
+/* 4. SIDE PANEL (GIAO DIỆN PHẢI - NÂNG CẤP NEON GLASS) */
 /* ========================================= */
+
+/* Khung Sidebar chính (GIỮ NGUYÊN BẢN GỐC VỊ TRÍ) */
 .side-panel {
     position: absolute;
     top: 0;
-    right: 0;
-    width: 50vw;         
+    right: 0; /* ĐÚNG BẢN GỐC: Nằm bên PHẢI */
+    width: 50vw; /* ĐÚNG BẢN GỐC: Rộng rãi */
     min-width: 350px;  
     max-width: 600px;
     height: 100%;
-    background: rgba(15, 15, 15, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(255,255,255,0.1);
+    
+    /* 🌟 NÂNG CẤP: Hiệu ứng kính mờ (Glassmorphism) */
+    background: rgba(20, 20, 25, 0.85);
+    backdrop-filter: blur(25px) saturate(150%);
+    -webkit-backdrop-filter: blur(25px) saturate(150%);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    
     z-index: 100;
     padding: 20px;
-    transform: translateX(100%); /* Mặc định ẩn sang phải */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-    overflow-y: auto;  /* Cho phép cuộn dọc nếu nội dung dài */
     
-    /* Làm đẹp thanh cuộn (Scrollbar) cho Webkit (Chrome/Cốc Cốc) */
-    scrollbar-width: thin;
-    scrollbar-color: #ff416c #222;
-}
-/* Trang trí thanh cuộn cho đẹp hơn */
-#sidePanel::-webkit-scrollbar {
-    width: 6px;
-}
-#sidePanel::-webkit-scrollbar-track {
-    background: #222;
-}
-#sidePanel::-webkit-scrollbar-thumb {
-    background-color: #ff416c;
-    border-radius: 10px;
-}
-.side-panel.open {
-    transform: translateX(0); /* Hiện ra khi có class .open */
-}
-.panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    /* 🌟 NÂNG CẤP: Chuyển động mượt mà hơn */
+    transform: translateX(100%); 
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
+    
+    overflow-y: auto;   
+    overflow-x: hidden; 
+    box-sizing: border-box; 
 }
 
-.panel-header h3 {
-    margin: 0;
-    font-size: 18px;
-    color: #fff;
+/* 🌟 NÂNG CẤP: Sáng Neon nhẹ viền trái khi mở panel */
+.side-panel.open { 
+    transform: translateX(0); 
+    box-shadow: -10px 0 40px rgba(255, 65, 108, 0.2); 
+}
+
+/* 🌟 NÂNG CẤP: Thanh cuộn Cyberpunk */
+.side-panel::-webkit-scrollbar { width: 6px; }
+.side-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+.side-panel::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #ff416c, #ff4b2b); border-radius: 10px; }
+.side-panel::-webkit-scrollbar-thumb:hover { background: #ff4b2b; }
+
+/* Header & Nút đóng */
+.panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 25px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 🌟 NÂNG CẤP: Chữ Gradient */
+.panel-header h3 { 
+    margin: 0; font-size: 18px; font-weight: 800;
+    background: linear-gradient(to right, #fff, #ff416c);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
 #closePanelBtn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1); border: none; color: #fff; 
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
 }
+#closePanelBtn:hover { background: #ff416c; transform: rotate(90deg); box-shadow: 0 0 15px rgba(255,65,108,0.5); }
 
-/* Ô tìm kiếm */
-.search-box {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+/* 🌟 NÂNG CẤP: Ô tìm kiếm Neon */
+.search-box { 
+    display: flex; gap: 8px; margin-bottom: 20px; 
+    position: relative; transition: all 0.3s;
 }
-
 .search-box input {
-    flex: 1;
-    background: rgba(255,255,255,0.1);
+    flex: 1; background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255,255,255,0.1);
-    padding: 10px;
-    border-radius: 8px;
-    color: white;
-    outline: none;
+    padding: 12px 15px; border-radius: 12px; color: white; outline: none;
+    transition: 0.3s;
 }
-
+.search-box input:focus { border-color: #ff416c; box-shadow: 0 0 15px rgba(255, 65, 108, 0.2); }
 .search-box button {
-    background: #ff416c;
-    border: none;
-    color: white;
-    padding: 0 15px;
-    border-radius: 8px;
-    cursor: pointer;
+    background: linear-gradient(135deg, #ff416c, #ff4b2b); border: none; color: white;
+    padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
 }
-.search-box button:hover { opacity: 0.9; }
-/* Danh sách lịch sử */
-.history-list {
-    flex: 1;
-    overflow-y: auto; /* Cho phép cuộn */
-}
+.search-box button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 65, 108, 0.5); }
 
-.history-list h4 {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+/* Danh sách Playlist / History */
+.history-list, .playlist-section { flex: 1; overflow-y: auto; }
+.history-list h4 { font-size: 13px; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.history-list ul, .playlist-section ul { list-style: none; padding: 0; margin: 0; }
 
-.history-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
+/* 🌟 NÂNG CẤP: Item bài hát (Nền mờ & Trượt khi Hover) */
 .history-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 5px;
-    background: rgba(255,255,255,0.03);
-    cursor: pointer;
-    transition: 0.2s;
+    display: flex; align-items: center; justify-content: space-between; 
+    padding: 10px 12px; border-radius: 12px; margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer; transition: all 0.3s ease;
+    border: 1px solid transparent;
 }
-
 .history-item:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 65, 108, 0.3);
+    transform: translateX(-5px); /* Trượt sang trái một xíu do panel nằm bên phải */
+    box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
 }
-
 .history-item img {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    object-fit: cover;
-}
-/* --- STYLE ĐỀ XUẤT NHẠC (UPDATE: 2 CỘT TO & ĐẸP) --- */
-.recommend-section {
-    margin: 20px 0 30px 0;
-    width: 100%;
-    /* Bỏ giới hạn chiều rộng để nó bung ra hết cỡ trong sidebar */
+    width: 45px; height: 45px; border-radius: 8px; object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-.recommend-grid {
-    display: grid;
-    /* CHỈNH SỬA QUAN TRỌNG: Chia thành 2 cột bằng nhau để hình to */
-    grid-template-columns: 1fr 1fr; 
-    gap: 15px; /* Khoảng cách giữa các ô */
-}
+/* Đề xuất nhạc (Grid) */
+.recommend-section { margin: 20px 0 30px 0; width: 100%; }
+.recommend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
+/* 🌟 NÂNG CẤP: Card bài hát đề xuất (Nảy lên, phát sáng) */
 .song-card {
-    background: rgba(255, 255, 255, 0.08); /* Màu nền sáng hơn chút */
-    border-radius: 12px; /* Bo góc tròn trịa hơn */
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy nhẹ */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Bóng đổ nhẹ */
+    background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 10px;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
-
 .song-card:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-5px) scale(1.02); /* Phóng to nhẹ khi di chuột */
-    box-shadow: 0 8px 20px rgba(255, 65, 108, 0.4); /* Bóng sáng màu hồng */
-    border-color: #ff416c; /* Viền đổi màu */
+    background: rgba(255, 255, 255, 0.1); transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 10px 25px rgba(255, 65, 108, 0.3); border-color: rgba(255, 65, 108, 0.5);
 }
-
-.song-card img {
-    width: 100%;
-    aspect-ratio: 16/9;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
+.song-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
 .song-card .song-title {
-    font-size: 14px; /* Chữ to hơn bản cũ (13px) */
-    color: #fff;
-    font-weight: 600; /* Chữ đậm hơn */
-    line-height: 1.4;
-    
-    /* Cắt bớt nếu tên quá dài (giữ 2 dòng) */
-    display: -webkit-box;
-    line-clamp: 2;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-/* --- STYLE CHO THANH CHỌN THỂ LOẠI --- */
-.genre-selector {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto; /* Cho phép lướt ngang nếu màn hình bé */
-    padding-bottom: 5px;
-    margin-bottom: 15px;
-    scrollbar-width: none; /* Ẩn thanh cuộn cho đẹp */
+    font-size: 13px; color: #fff; font-weight: 600; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 
-.genre-selector::-webkit-scrollbar {
-    display: none;
+/* Thể loại nhạc */
+.genre-selector {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none;
 }
+.genre-selector::-webkit-scrollbar { display: none; }
 
 .genre-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ccc;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    white-space: nowrap; /* Không cho chữ xuống dòng */
-    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    cursor: pointer; white-space: nowrap; transition: all 0.3s ease;
 }
-
-.genre-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-}
-
-/* Khi nút được chọn */
+.genre-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
 .genre-btn.active {
-    background: #ff416c; /* Màu hồng chủ đạo */
-    border-color: #ff416c;
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(255, 65, 108, 0.4);
+    background: linear-gradient(135deg, #ff416c, #ff4b2b); border-color: transparent; color: white; font-weight: bold;
+    box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4); transform: translateY(-2px);
+}
+
+/* 🌟 NÂNG CẤP: Nút Icon (Xóa, Thêm) với hiệu ứng Neon xịn xò */
+.header-icon-btn, .item-icon-btn {
+    background: transparent !important; border: none !important; outline: none !important;
+    cursor: pointer; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-left: 5px; flex-shrink: 0; 
+}
+
+.header-icon-btn { background: rgba(255, 255, 255, 0.05) !important; color: #ff6b6b; }
+.header-icon-btn:hover {
+    background: rgba(255, 71, 87, 0.2) !important; color: #ff4757;
+    box-shadow: 0 0 15px rgba(255, 71, 87, 0.6); transform: scale(1.15);
+}
+
+.item-icon-btn.add { color: #2ed573; background: rgba(46, 213, 115, 0.1) !important; }
+.item-icon-btn.add:hover {
+    background: #2ed573 !important; color: #fff;
+    box-shadow: 0 0 15px #2ed573; transform: scale(1.2) rotate(90deg);
+}
+
+.item-icon-btn.del { color: #ff4757; background: rgba(255, 71, 87, 0.1) !important; }
+.item-icon-btn.del:hover {
+    background: #ff4757 !important; color: #fff;
+    box-shadow: 0 0 15px #ff4757; transform: scale(1.2) rotate(-15deg);
 }

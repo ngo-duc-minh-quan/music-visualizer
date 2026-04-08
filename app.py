@@ -4,41 +4,171 @@ import traceback
 import subprocess
 import platform 
 import random 
-import json # Import json để xử lý kết quả Gemini
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context, send_file
+import json 
+import sqlite3
+import smtplib # 🔥 MỚI: Thư viện gửi mail
+from email.mime.text import MIMEText # 🔥 MỚI: Thư viện soạn nội dung mail
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context, send_file, session
 import requests
 import yt_dlp
+import shutil
+import glob
 from pydub import AudioSegment
 
-# --- THÊM THƯ VIỆN GEMINI ---
 import google.generativeai as genai
 
 # ==============================================================================
-# 🔑 CẤU HÌNH API KEY 
+# 🔑 CẤU HÌNH API KEY GEMINI
 # ==============================================================================
 GOOGLE_API_KEY = "AIzaSyDgsXu6g86jzxtfap4srRYy6LdtBHLNwi4"
 genai.configure(api_key=GOOGLE_API_KEY)
+
+# ==============================================================================
+# 📧 CẤU HÌNH GỬI EMAIL OTP
 # ==============================================================================
 
-# --- CẤU HÌNH HỆ THỐNG ---
+SENDER_EMAIL = "email_cua_ban@gmail.com" 
+SENDER_PASSWORD = "xxxx xxxx xxxx xxxx"  
+
+# Bộ nhớ tạm để lưu OTP (Sẽ reset nếu tắt server)
+otp_storage = {} 
+# ==============================================================================
+
 project_dir = os.path.dirname(os.path.abspath(__file__))
 output_folder = os.path.join(project_dir, "separated_files")
 if not os.path.exists(output_folder): os.makedirs(output_folder)
 
-# KIỂM TRA HỆ ĐIỀU HÀNH
 is_windows = platform.system() == "Windows"
 ffmpeg_executable = "ffmpeg" if not is_windows else "ffmpeg.exe"
 
 app = Flask(__name__)
+app.secret_key = "newgen_music_super_secret_key_2026" 
 
-# --- CẤU HÌNH USER-AGENT MOBILE (FIX LỖI 403 & 500) ---
 MOBILE_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+
+# ==============================================================================
+# 🗄️ KHỞI TẠO CƠ SỞ DỮ LIỆU (DATABASE)
+# ==============================================================================
+def init_db():
+    conn = sqlite3.connect('newgen_music.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS playlists
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, title TEXT, url TEXT, thumbnail TEXT, original_url TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db() 
+
+# ==============================================================================
+# 🔐 CÁC API ĐĂNG KÝ (CÓ OTP) / ĐĂNG NHẬP / ĐĂNG XUẤT
+# ==============================================================================
+
+@app.route('/api/send_otp', methods=['POST'])
+def send_otp():
+    data = request.json
+    email = data.get('email')
+    
+    if not email or "@" not in email:
+        return jsonify({'error': 'Email không hợp lệ!'}), 400
+
+    conn = sqlite3.connect('newgen_music.db')
+    c = conn.cursor()
+    c.execute("SELECT id FROM users WHERE username = ?", (email,))
+    if c.fetchone():
+        conn.close()
+        return jsonify({'error': 'Email này đã được đăng ký!'}), 400
+    conn.close()
+
+    otp = str(random.randint(100000, 999999))
+    otp_storage[email] = otp 
+
+    msg = MIMEText(f"Chào bạn,\n\nMã OTP để xác nhận đăng ký tài khoản Newgen Music của bạn là: {otp}\nMã này chỉ có hiệu lực cho phiên đăng ký hiện tại.\n\nChúc bạn nghe nhạc vui vẻ!")
+    msg['Subject'] = "[Newgen Music] Mã xác nhận đăng ký"
+    msg['From'] = f"Newgen Music <{SENDER_EMAIL}>"
+    msg['To'] = email
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.send_message(msg)
+        return jsonify({'success': True, 'message': 'Đã gửi mã OTP! Vui lòng kiểm tra hộp thư (cả mục Spam).'})
+    except Exception as e:
+        print("Lỗi gửi mail:", e)
+        return jsonify({'error': 'Lỗi Server: Không thể gửi email. Bạn đã cấu hình App Password chưa?'}), 500
+
+@app.route('/api/verify_register', methods=['POST'])
+def verify_register():
+    data = request.json
+    email = data.get('email') 
+    password = data.get('password')
+    user_otp = data.get('otp')
+
+    if not email or not password or not user_otp:
+        return jsonify({'error': 'Vui lòng điền đầy đủ thông tin!'}), 400
+
+    if len(password) < 6:
+        return jsonify({'error': 'Mật khẩu phải từ 6 ký tự trở lên!'}), 400
+
+    if email not in otp_storage or otp_storage[email] != str(user_otp):
+        return jsonify({'error': 'Mã OTP không chính xác hoặc đã hết hạn!'}), 400
+
+    hashed_pw = generate_password_hash(password)
+    
+    try:
+        conn = sqlite3.connect('newgen_music.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (email, hashed_pw))
+        conn.commit()
+        conn.close()
+        
+        del otp_storage[email] 
+        
+        return jsonify({'success': True, 'message': 'Đăng ký thành công! Bạn có thể đăng nhập ngay.'})
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Email này đã có người sử dụng!'}), 400
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    conn = sqlite3.connect('newgen_music.db')
+    c = conn.cursor()
+    c.execute("SELECT id, password FROM users WHERE username = ?", (username,))
+    user = c.fetchone()
+    conn.close()
+    
+    if user and check_password_hash(user[1], password):
+        session['user_id'] = user[0]
+        session['username'] = username
+        return jsonify({'success': True, 'message': f'Chào mừng {username} trở lại!'})
+        
+    return jsonify({'error': 'Sai Email hoặc mật khẩu!'}), 401
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.pop('user_id', None)
+    session.pop('username', None)
+    return jsonify({'success': True, 'message': 'Đã đăng xuất an toàn.'})
+
+@app.route('/api/user_info', methods=['GET'])
+def user_info():
+    if 'user_id' in session:
+        return jsonify({'logged_in': True, 'username': session['username']})
+    return jsonify({'logged_in': False})
+
+# ==============================================================================
+# 🎵 CÁC API CŨ (TÌM KIẾM, TÁCH LỜI, PHÁT NHẠC...)
+# ==============================================================================
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# --- HÀM CẤU HÌNH YT-DLP CHUNG (CÓ COOKIES) ---
 def get_ydl_opts(noplaylist=True, count=1):
     opts = {
         'format': 'bestaudio/best', 
@@ -46,25 +176,19 @@ def get_ydl_opts(noplaylist=True, count=1):
         'quiet': True, 
         'geo_bypass': True,
         'nocheckcertificate': True,
-        'extractor_args': {'youtube': {'player_client': ['android']}}, # Dùng Android Client để ổn định
+        'no_continue': True,
+        'cachedir': False,   
+        'extractor_args': {'youtube': {'player_client': ['web', 'tv', 'default']}}, 
         'default_search': f'ytsearch{count}'
     }
-    
-    # --- TỰ ĐỘNG NẠP COOKIES NẾU CÓ ---
     cookie_path = os.path.join(project_dir, 'cookies.txt')
-    if os.path.exists(cookie_path):
-        opts['cookiefile'] = cookie_path
-    else:
-        print("⚠️ Cảnh báo: Không tìm thấy file cookies.txt!")
-        
+    if os.path.exists(cookie_path): opts['cookiefile'] = cookie_path
     return opts
 
-# --- 1. SEARCH API ---
 @app.route('/api/search')
 def search_youtube():
     query = request.args.get('q')
     if not query: return jsonify({'error': 'No query'}), 400
-    
     try:
         with yt_dlp.YoutubeDL(get_ydl_opts(count=1)) as ydl:
             result = ydl.extract_info(query, download=False)
@@ -76,7 +200,6 @@ def search_youtube():
             })
     except Exception as e: return jsonify({'error': str(e)}), 500
 
-# --- 2. TRENDING API ---
 @app.route('/api/trending')
 def get_trending():
     category = request.args.get('type', 'all')
@@ -87,7 +210,6 @@ def get_trending():
         'remix': "nhạc trẻ remix vinahouse căng cực"
     }
     search_query = random.choice(queries['all']) if category == 'all' else queries.get(category, "nhạc trẻ hay nhất")
-    
     try:
         opts = get_ydl_opts(count=6)
         with yt_dlp.YoutubeDL(opts) as ydl:
@@ -96,166 +218,170 @@ def get_trending():
             return jsonify(suggestions)
     except Exception as e: return jsonify({'error': str(e)}), 500
 
-# --- 3. GENERATE LYRIC (ĐÃ NÂNG CẤP LÊN GEMINI) ---
 @app.route('/api/generate_lyrics')
 def generate_lyrics():
     url = request.args.get('url')
     if not url: return jsonify({'error': 'Thiếu URL'}), 400
     
-    # File tạm
     audio_path = os.path.join(project_dir, "temp_lyric_audio.mp3")
     
+    mock_lyrics = [
+        {"start": 0.0, "end": 5.0, "text": "❌ Rất tiếc, AI không thể tạo lời cho bài này."},
+        {"start": 5.0, "end": 10.0, "text": "Lý do: File nhạc quá dài hoặc Server YouTube từ chối tải."},
+        {"start": 10.0, "end": 15.0, "text": "Vui lòng thử bài hát khác hoặc thử lại sau!"},
+        {"start": 15.0, "end": 999.0, "text": "(Chế độ nhạc Karaoke vẫn hoạt động bình thường)"}
+    ]
+
     try:
         if os.path.exists(audio_path): os.remove(audio_path)
         
-        # 1. Tải nhạc (Nén 64k cho nhanh)
         opts = get_ydl_opts()
         opts.update({
-            'outtmpl': 'temp_lyric_audio.%(ext)s',
+            'outtmpl': os.path.join(project_dir, 'temp_lyric_audio.%(ext)s'),
             'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '64'}],
-            'overwrites': True
+            'overwrites': True,
+            'no_continue': True,
+            'cachedir': False    
         })
         if is_windows: opts['ffmpeg_location'] = project_dir
 
         with yt_dlp.YoutubeDL(opts) as ydl: ydl.download([url])
 
-        # 2. Gửi file lên Gemini
         print("🤖 Đang gửi file lên Gemini để tạo Karaoke...")
         sample_audio = genai.upload_file(path=audio_path)
         
-        # 3. Yêu cầu Gemini
         model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = """
         Nghe bài hát này và tạo dữ liệu Karaoke JSON.
         Yêu cầu tuyệt đối:
         1. Trả về định dạng JSON List thuần túy: [{"start": 0.0, "end": 2.5, "text": "Câu hát 1"}, ...]
         2. KHÔNG dùng markdown (```json), KHÔNG giải thích.
-        3. "text" phải là Tiếng Việt chuẩn, đúng chính tả, có dấu.
-        4. Chia nhỏ từng câu (segment) để chữ chạy khớp nhạc.
+        3. "text" phải là Tiếng Việt chuẩn.
         """
-        
         response = model.generate_content([prompt, sample_audio])
         
-        # 4. Xử lý kết quả
         json_str = response.text.replace("```json", "").replace("```", "").strip()
+        
+        if not json_str.startswith("["):
+            raise Exception("AI không trả về JSON hợp lệ")
+            
         lyrics_data = json.loads(json_str)
         
         if os.path.exists(audio_path): os.remove(audio_path)
         return jsonify(lyrics_data)
 
     except Exception as e:
-        traceback.print_exc()
+        print("LỖI GEMINI:", str(e))
         if os.path.exists(audio_path): os.remove(audio_path)
-        return jsonify({'error': "Gemini Error: " + str(e)}), 500
+        return jsonify(mock_lyrics)
 
-# --- 4. PROCESS AUDIO (DEMUCS + PYDUB) ---
 @app.route('/api/process_audio')
 def process_audio():
     url = request.args.get('url')
-    mode = request.args.get('mode') 
+    mode = request.args.get('mode', 'original') 
     if not url: return jsonify({'error': 'Thiếu URL'}), 400
 
-    filename = "processed_song"
+    import hashlib
+    video_id = hashlib.md5(url.encode()).hexdigest()
+    filename = f"song_{video_id}"
     original_path = os.path.join(output_folder, f"{filename}.mp3")
     
-    # Tải nhạc gốc nếu chưa có
-    if not os.path.exists(original_path):
-        print(f"⬇️ Đang tải nhạc gốc: {url}")
-        opts = get_ydl_opts()
-        opts.update({
-            'outtmpl': os.path.join(output_folder, filename + ".%(ext)s"),
-            'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}],
-            'overwrites': True
-        })
-        if is_windows: opts['ffmpeg_location'] = project_dir
-        try:
+    try:
+        if not os.path.exists(original_path):
+            opts = get_ydl_opts()
+            opts.update({
+                'outtmpl': os.path.join(output_folder, filename + ".%(ext)s"),
+                'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}],
+                'overwrites': True,
+                'no_continue': True,
+                'cachedir': False
+            })
+            if is_windows: opts['ffmpeg_location'] = project_dir
             with yt_dlp.YoutubeDL(opts) as ydl: ydl.download([url])
-        except Exception as e: return jsonify({'error': "Lỗi tải nhạc: " + str(e)}), 500
+    except Exception as e: return jsonify({'error': "Lỗi tải nhạc: " + str(e)}), 500
 
     if mode == 'original': return send_file(original_path, mimetype="audio/mpeg")
 
-    # Demucs logic (Local Processing)
+    mp3_path = os.path.join(output_folder, f"{filename}_{mode}.mp3")
+    if os.path.exists(mp3_path): os.remove(mp3_path)
+
+    if mode == '8d':
+        cmd = f'"{ffmpeg_executable}" -y -i "{original_path}" -af "apulsator=hz=0.125" "{mp3_path}"'
+        subprocess.run(cmd, shell=True)
+        return send_file(mp3_path, mimetype="audio/mpeg")
+        
+    elif mode == 'reverb':
+        cmd = f'"{ffmpeg_executable}" -y -i "{original_path}" -af "aecho=0.8:0.9:1000:0.3" "{mp3_path}"'
+        subprocess.run(cmd, shell=True)
+        return send_file(mp3_path, mimetype="audio/mpeg")
+
     demucs_base_folder = os.path.join(output_folder, "htdemucs")
-    found_folder = None
-    if os.path.exists(demucs_base_folder):
-        subfolders = [f.path for f in os.scandir(demucs_base_folder) if f.is_dir()]
-        subfolders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-        if subfolders: found_folder = subfolders[0]
+    target_demucs_folder = os.path.join(demucs_base_folder, filename)
+    vocals_wav = os.path.join(target_demucs_folder, "vocals.wav")
+    no_vocals_wav = os.path.join(target_demucs_folder, "no_vocals.wav")
 
     need_separation = True
-    if found_folder and os.path.exists(os.path.join(found_folder, "vocals.wav")):
-        need_separation = False
+    if os.path.exists(vocals_wav) and os.path.exists(no_vocals_wav):
+        if os.path.getsize(vocals_wav) > 1024: need_separation = False
     
     if need_separation:
         print("🤖 AI Demucs đang tách lời...")
         python_exec = sys.executable 
         env = os.environ.copy()
         if is_windows: env["PATH"] += os.pathsep + project_dir
+        if os.path.exists(target_demucs_folder): shutil.rmtree(target_demucs_folder)
         cmd = f'"{python_exec}" -m demucs.separate --two-stems=vocals -n htdemucs -o "{output_folder}" "{original_path}"'
         subprocess.run(cmd, shell=True, env=env)
-        if os.path.exists(demucs_base_folder):
-            subfolders = [f.path for f in os.scandir(demucs_base_folder) if f.is_dir()]
-            subfolders.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-            if subfolders: found_folder = subfolders[0]
 
-    if not found_folder: return jsonify({'error': "Lỗi tách nhạc"}), 500
+    if not os.path.exists(vocals_wav): return jsonify({'error': "Lỗi tách nhạc"}), 500
         
-    vocals_path = os.path.join(found_folder, "vocals.wav")
-    no_vocals_path = os.path.join(found_folder, "no_vocals.wav")
-
     try:
-        final_file = None
-        if mode == 'karaoke': final_file = no_vocals_path
-        elif mode == 'vocal_only': final_file = vocals_path
-        
-        # Hiệu ứng đổi giọng (Chipmunk / Deep) dùng Pydub
-        elif mode == 'chipmunk':
-            vocal = AudioSegment.from_file(vocals_path)
-            beat = AudioSegment.from_file(no_vocals_path)
-            # Tăng tốc độ giọng hát (làm méo tiếng cao lên)
-            new_sample_rate = int(vocal.frame_rate * 1.5)
-            vocal_high = vocal._spawn(vocal.raw_data, overrides={'frame_rate': new_sample_rate}).set_frame_rate(vocal.frame_rate)
-            mixed = vocal_high.overlay(beat)
-            out_path = os.path.join(output_folder, "chipmunk.mp3")
-            mixed.export(out_path, format="mp3")
-            final_file = out_path
-            
-        elif mode == 'deep':
-            vocal = AudioSegment.from_file(vocals_path)
-            beat = AudioSegment.from_file(no_vocals_path)
-            # Giảm tốc độ giọng hát (làm trầm tiếng xuống)
-            new_sample_rate = int(vocal.frame_rate * 0.75) 
-            vocal_low = vocal._spawn(vocal.raw_data, overrides={'frame_rate': new_sample_rate}).set_frame_rate(vocal.frame_rate)
-            mixed = vocal_low.overlay(beat)
-            out_path = os.path.join(output_folder, "deep.mp3")
-            mixed.export(out_path, format="mp3",bitrate="192k")
-            final_file = out_path
+        if mode == 'karaoke': AudioSegment.from_wav(no_vocals_wav).export(mp3_path, format="mp3")
+        elif mode == 'vocal_only': AudioSegment.from_wav(vocals_wav).export(mp3_path, format="mp3")
 
-        return send_file(final_file, mimetype="audio/mpeg")
+        if os.path.exists(mp3_path):
+            response = send_file(mp3_path, mimetype="audio/mpeg")
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            return response
+        else: return jsonify({'error': "Không tạo được file"}), 500
+
     except Exception as e: return jsonify({'error': str(e)}), 500
 
-# --- 5. PROXY AUDIO (FIX LỖI 403) ---
 @app.route('/proxy_audio')
 def proxy_audio():
     url = request.args.get('url')
     if not url: return "No URL", 400
-    
-    headers = { "User-Agent": MOBILE_USER_AGENT, "Accept": "*/*", "Range": request.headers.get('Range', 'bytes=0-') }
+
+    headers = {
+        "Range": request.headers.get('Range', 'bytes=0-')
+    }
+
+    if 'c=ANDROID' in url:
+        headers["User-Agent"] = "com.google.android.youtube/17.36.4 (Linux; U; Android 12; GB) gzip"
+    else:
+        headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        headers["Referer"] = "[https://www.youtube.com/](https://www.youtube.com/)"
+        headers["Origin"] = "[https://www.youtube.com](https://www.youtube.com)"
 
     try:
         req = requests.get(url, headers=headers, stream=True)
-        # Fallback nếu vẫn bị chặn 403
+        
         if req.status_code == 403:
             headers.pop("User-Agent", None)
             req = requests.get(url, headers=headers, stream=True)
 
         excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
         resp_headers = [(name, value) for (name, value) in req.headers.items() if name.lower() not in excluded_headers]
+        
         if 'Content-Length' in req.headers: resp_headers.append(('Content-Length', req.headers['Content-Length']))
         if 'Content-Range' in req.headers: resp_headers.append(('Content-Range', req.headers['Content-Range']))
-
-        return Response(stream_with_context(req.iter_content(chunk_size=4096)), status=req.status_code, headers=resp_headers)
-    except Exception as e: return "Error", 500
+        
+        return Response(stream_with_context(req.iter_content(chunk_size=1024*1024)), status=req.status_code, headers=resp_headers)
+    
+    except Exception as e: 
+        return str(e), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

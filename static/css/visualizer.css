@@ -1,40 +1,44 @@
+/* --- static/css/visualizer.css --- */
+
 /* KHUNG VISUALIZER (SÂN KHẤU CHÍNH) */
 .stage {
     flex: 1;
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     overflow: hidden;
-    background: #222;
+    background: #111;
 }
 
-/* Ảnh nền mờ */
+/* ẢNH NỀN MỜ */
 .bg-image {
     position: absolute;
     inset: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(15px) brightness(0.8); 
-    opacity: 0.8;
-    transform: scale(1.1);
+    filter: blur(25px) brightness(0.5); 
+    transform: scale(1.15); /* Zoom to một chút để giấu viền mờ */
     transition: background-image 0.5s ease;
     z-index: 0;
 }
 
-/* Lớp phủ */
+/* LỚP PHỦ TỐI DẦN VỀ 4 GÓC */
 .overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.6) 100%);
+    background: radial-gradient(circle, transparent 30%, rgba(0,0,0,0.8) 100%);
     z-index: 1;
     pointer-events: none;
 }
 
+/* QUAN TRỌNG: Bọc canvas để không bị flexbox bóp méo */
+.visualizer-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+}
+
 canvas {
-    position: relative;
-    z-index: 10;
+    display: block;
     width: 100%;
     height: 100%;
-    display: block;
 }

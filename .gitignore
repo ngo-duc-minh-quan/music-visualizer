@@ -22,5 +22,5 @@ cookies.txt
 *.exe
 
 # Bỏ qua file tạm, file lỗi
-temp*
+temp/
 *.part

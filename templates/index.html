@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Music Visualizer AI</title>
+    <title>Newgen Music</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/visualizer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/player.css') }}">
@@ -26,29 +29,8 @@
             font-size: 11px; transition: 0.2s; margin: 0 3px;
         }
         .btn-mode:hover { background: #ff416c; border-color: #ff416c; transform: scale(1.05); }
-    </style>
-</head>
-<body>
-    <style>
-        /* CSS NỘI BỘ (Để các nút hoạt động ngay mà không cần sửa file CSS nhiều) */
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #ff416c; }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        .btn-mode {
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
-            color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer;
-            font-size: 11px; transition: 0.2s; margin: 0 3px;
-        }
-        .btn-mode:hover { background: #ff416c; border-color: #ff416c; transform: scale(1.05); }
         
-        /* STYLE CHO THANH CHỌN THỂ LOẠI (MỚI) */
-        .genre-selector {
-            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none;
-        }
+        .genre-selector { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
         .genre-selector::-webkit-scrollbar { display: none; }
         .genre-btn {
             background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -60,6 +42,31 @@
 
         .playlist-section ul li { border-bottom: 1px solid rgba(255,255,255,0.05); }
         .playlist-section ul li:last-child { border-bottom: none; }
+
+        .party-select { background: transparent; border: none; color: #aaa; font-size: 11px; font-weight: 500; cursor: pointer; outline: none; padding: 5px 2px; font-family: 'Montserrat', sans-serif; transition: color 0.3s; -webkit-appearance: none; -moz-appearance: none; appearance: none; text-align: center; }
+        .party-select:hover { color: #fff; }
+        .party-group.active .party-select, .party-group.active #partyModeBtn { color: #ff416c; text-shadow: 0 0 10px rgba(255, 65, 108, 0.5); }
+        .party-select option { background: #222; color: #fff; padding: 10px; }
+
+        .bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -2; opacity: 0; transition: opacity 2s ease; filter: blur(25px) brightness(0.4); pointer-events: none; }
+        .bg-video iframe { width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        
+        .control-deck { transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        body.cinema-mode { cursor: none; } 
+        body.cinema-mode .control-deck { opacity: 0; transform: translateY(50px); pointer-events: none; } 
+
+/* GIAO DIỆN ĐĂNG NHẬP & AVATAR */
+        .auth-box { width: 400px; padding: 40px 30px; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,65,108, 0.3); box-shadow: 0 0 20px rgba(255,65,108,0.2); border-radius: 15px; }
+        .auth-tabs { display: flex; justify-content: center; gap: 15px; border-bottom: 1px solid #444; padding-bottom: 12px; margin-bottom: 25px; }
+        .auth-tab { background: none; border: none; color: #888; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; padding: 8px 15px; }
+        .auth-tab.active { color: #ff416c; text-shadow: 0 0 8px rgba(255,65,108,0.6); border-bottom: 3px solid #ff416c; }
+        .auth-input { width: 100%; padding: 15px; margin-top: 18px; font-size: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-family: 'Montserrat', sans-serif; outline: none; transition: 0.3s; box-sizing: border-box; }
+        .auth-input:focus { border-color: #ff416c; box-shadow: 0 0 10px rgba(255,65,108,0.3); }
+        
+        .user-profile { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px 15px 5px 5px; border-radius: 30px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        .user-profile:hover { background: rgba(255,255,255,0.1); border-color: #ff416c; }
+        .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(45deg, #ff416c, #00c6ff); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 16px; animation: avatarPulse 2s infinite; }
+        @keyframes avatarPulse { 0% {box-shadow: 0 0 0 0 rgba(255,65,108, 0.7);} 70% {box-shadow: 0 0 0 10px rgba(255,65,108, 0);} 100% {box-shadow: 0 0 0 0 rgba(255,65,108, 0);} }
     </style>
 </head>
 <body>
@@ -69,12 +76,17 @@
     <div class="app-container">
         
         <div id="sidePanel" class="side-panel">
-            <div class="panel-header">
-                <h3>🔍 YouTube & Playlist</h3>
+            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;"><i class="fas fa-compass"></i> Khám phá</h3>
+                
+                <div id="userAuthSection">
+                    <button id="openAuthBtn" class="btn-mode" style="background: linear-gradient(45deg, #ff416c, #ff8b41); border:none; font-weight:bold; margin:0;"><i class="fas fa-user-circle"></i> Đăng nhập</button>
+                </div>
+                
                 <button id="closePanelBtn"><i class="fas fa-times"></i></button>
             </div>
             
-            <div class="search-box">
+            <div class="search-box" style="margin-top: 15px;">
                 <input type="text" id="searchInput" placeholder="Nhập tên bài hát...">
                 <button id="searchBtn"><i class="fas fa-search"></i></button>
             </div>
@@ -109,7 +121,7 @@
             <div class="playlist-section" style="margin-top: 20px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 style="margin:0; font-size:14px; color:#ffe600;"><i class="fas fa-list"></i> PLAYLIST CỦA TÔI</h3>
-                    <button id="clearPlaylist" style="background:none; border:none; color:#f55; font-size:11px; cursor:pointer;">(Xóa hết)</button>
+                   <button id="clearPlaylist" class="header-icon-btn del" title="xóa toàn bộ Playlist"><i class="fas fa-trash-alt"></i></button>
                 </div>
                 <ul id="playlistUl" style="list-style:none; padding:0; max-height: 200px; overflow-y: auto;">
                     <li style="color:#777; font-size:12px; text-align:center; padding:10px;">(Chưa có bài nào)</li>
@@ -119,7 +131,7 @@
             <div class="history-list">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h4 style="margin:0; font-size:14px; color:#aaa;"><i class="fas fa-history"></i> Lịch sử phát</h4>
-                    <button id="clearHistory" style="background:none; border:none; color:#f55; font-size:11px; cursor:pointer;">(Xóa)</button>
+                    <button id="clearHistory" class="header-icon-btn del" title="xóa toàn bộ lịch sử"><i class="fas fa-trash-alt"></i></button>
                 </div>
                 <ul id="historyUl" class="music-list"></ul>
             </div>
@@ -129,16 +141,25 @@
 
         <div class="stage">
             <div class="bg-image" id="bgImage"></div>
+            <div class="bg-video"><iframe id="ytVideoBg" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
             <div class="overlay"></div>
-            <canvas id="visualizer"></canvas>
-            <div id="karaokeBox" class="karaoke-container"></div>
+            
+            <div class="visualizer-container">
+                <canvas id="visualizer"></canvas>
+            </div>
+            
+            <div id="karaoke-container" style="display: none;">
+                <div id="lyrics-content"></div>
+            </div>
         </div>
 
         <div class="control-deck">
-            
             <div class="track-info">
                 <div class="song-info-container" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <div class="song-title" id="audioName" style="max-width: 80%;">🎵 Chọn bài hát để bắt đầu...</div>
+                    <div class="song-title" style="max-width: 80%;">
+                        <span id="audioName">🎵 Chọn bài hát để bắt đầu...</span>
+                        <span id="lyricStatusMsg" style="font-size: 12px; margin-left: 8px; color: #ff416c; font-weight: normal;"></span>
+                    </div>
                     <button id="mainAddBtn" title="Thêm bài này vào Playlist" style="display:none; background:none; border:none; color:#0f0; font-size:18px; cursor:pointer; transition:0.2s;">
                         <i class="fas fa-plus-circle"></i>
                     </button>
@@ -156,8 +177,8 @@
                     <button onclick="changeVoice('original')" class="btn-mode">🎵 Gốc</button>
                     <button onclick="changeVoice('karaoke')" class="btn-mode">🎤 Karaoke</button>
                     <button onclick="changeVoice('vocal_only')" class="btn-mode">🗣️ Vocal</button>
-                    <button onclick="changeVoice('chipmunk')" class="btn-mode">🐿️ Chipmunk</button>
-                    <button onclick="changeVoice('deep')" class="btn-mode">👹 Deep</button>
+                    <button onclick="changeVoice('8d')" class="btn-mode">🎧 8D Audio</button>
+                    <button onclick="changeVoice('reverb')" class="btn-mode">🏟️ Reverb</button>
                 </div>
                 <div id="processingMsg" style="text-align:center; color:#ffe600; font-size:11px; margin-top:5px; display:none;">
                     ⏳ AI đang xử lý tách nhạc (1-2 phút)...
@@ -165,14 +186,19 @@
             </div>
 
             <div class="main-controls">
-                
                 <div class="side-controls">
-                    <button id="togglePanelBtn" class="btn-icon" title="Playlist & Lịch sử"><i class="fas fa-bars"></i></button>
+                    <button id="togglePanelBtn" class="btn-icon" title="Playlist & Menu"><i class="fas fa-bars"></i></button>
                     
-                    <div class="upload-btn-wrapper" title="Chọn file nhạc">
+                    <div class="upload-btn-wrapper" title="Chọn nhạc máy tính">
                         <button class="btn-icon"><i class="fas fa-music"></i></button>
                         <input type="file" id="audioFile" accept="audio/*">
                     </div>
+                    
+                    <div class="upload-btn-wrapper" title="Tải file Lời bài hát (.lrc)">
+                        <button class="btn-icon" style="color:#00c6ff;"><i class="fas fa-closed-captioning"></i></button>
+                        <input type="file" id="lrcFile" accept=".lrc, .txt">
+                    </div>
+
                     <div class="upload-btn-wrapper" title="Đổi ảnh nền">
                         <button class="btn-icon"><i class="fas fa-image"></i></button>
                         <input type="file" id="imageFile" accept="image/*">
@@ -185,12 +211,19 @@
                 </div>
 
                 <div class="side-controls">
-                    <button id="loopBtn" class="btn-icon" title="Lặp lại"><i class="fas fa-redo"></i></button>
-
-                    <button id="recordBtn" class="btn-pill record"><i class="fas fa-circle"></i> REC</button>
-                    <button id="stopRecordBtn" class="btn-pill stop" style="display:none"><i class="fas fa-stop"></i> STOP</button>
+                    <button id="loopBtn" class="btn-icon" title="Lặp lại (Phím: L)"><i class="fas fa-redo"></i></button>
+                    <button id="sleepTimerBtn" class="btn-icon" title="Hẹn giờ tắt nhạc"><i class="fas fa-moon"></i></button>
                     
-                    <button id="modeToggle" class="btn-icon" title="Đổi kiểu sóng"><i class="fas fa-wave-square"></i></button>
+                    <div class="party-group" style="display: flex; align-items: center; background: rgba(255,255,255,0.1); border-radius: 30px; padding-right: 5px; margin-left: 5px;">
+                        <button id="partyModeBtn" class="btn-icon" title="Bật/Tắt chế độ Party" style="margin: 0; background: none; border: none;"><i class="fas fa-magic"></i></button>
+                        <select id="partyColorSelect" class="party-select" title="Chọn số lượng màu sắc">
+                            <option value="3">🔴🟢🔵 3 màu</option>
+                            <option value="4">🟪🟦🟧🟨 4 màu</option>
+                            <option value="5">🌈 5 màu</option>
+                            <option value="7" selected>✨ 7 màu</option>
+                        </select>
+                    </div>
+
                 </div>
             </div>
 
@@ -202,23 +235,74 @@
                 </div>
 
                 <div class="setting-group">
-                    <i class="fas fa-volume-up" title="Âm lượng"></i>
+                    <i class="fas fa-volume-up" id="volumeIcon" title="Âm lượng (Phím: M)"></i>
                     <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+                </div>
+                
+                <div class="setting-group" title="Chỉnh Bass (Âm trầm - Đập rung loa)">
+                    <i class="fas fa-drum" style="color: #ff8b41;"></i>
+                    <input type="range" id="bassSlider" min="-15" max="15" step="1" value="0">
+                </div>
+                
+                <div class="setting-group" title="Chỉnh Treble (Âm cao - Sáng giọng)">
+                    <i class="fas fa-guitar" style="color: #00c6ff;"></i>
+                    <input type="range" id="trebleSlider" min="-15" max="15" step="1" value="0">
                 </div>
 
                 <div class="setting-group">
                     <i class="fas fa-palette" title="Giao diện"></i>
                     <select id="themeSelect" class="custom-select">
-                        <option value="red">🔥 Red Neon</option>
-                        <option value="blue">🌊 Blue Chill</option>
-                        <option value="purple">🔮 Purple Night</option>
+                        <option value="white">🔥 White</option>
+                        <option value="blue">🌊 Blue</option>
+                        <option value="purple">🔮 Purple</option>
                     </select>
                     <input type="color" id="colorPicker" value="#ff416c" style="height: 35px; width: 40px; border: none; cursor: pointer; background: none;">
                 </div>
             </div>
-
         </div> 
     </div>
   
-<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script></body>
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">⚠️</div>
+            <h3 class="modal-title">Xác nhận xóa</h3>
+            <p class="modal-msg" id="modalMessage">Bạn có chắc chắn muốn xóa không?</p>
+            <div class="modal-actions">
+                <button id="btnCancel" class="btn-modal btn-cancel">Hủy bỏ</button>
+                <button id="btnConfirm" class="btn-modal btn-confirm">Xóa ngay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-box auth-box" style="text-align: center; position: relative;">
+            <button id="closeAuthBtn" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:20px; cursor:pointer; transition:0.3s;"><i class="fas fa-times"></i></button>
+            
+            <div class="auth-tabs">
+                <button id="tabLogin" class="auth-tab active">Đăng nhập</button>
+                <button id="tabRegister" class="auth-tab">Đăng ký</button>
+            </div>
+            
+            <div id="loginFormBlock">
+                <input type="email" id="loginUser" placeholder="Email đăng nhập" class="auth-input">
+                <input type="password" id="loginPass" placeholder="Mật khẩu" class="auth-input">
+                <button id="submitLoginBtn" class="btn-modal btn-confirm" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 15px;">Vào trong <i class="fas fa-arrow-right"></i></button>
+            </div>
+            
+            <div id="registerFormBlock" style="display: none;">
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
+                    <input type="email" id="regEmail" placeholder="Địa chỉ Email của bạn" class="auth-input" style="margin-top: 0;">
+                    <button id="sendOtpBtn" class="btn-mode" style="margin: 0; padding: 0 15px; background: linear-gradient(45deg, #00c6ff, #0072ff); border: none; white-space: nowrap; font-weight: bold; border-radius: 8px;">Gửi Mã</button>
+                </div>
+                <input type="password" id="regPass" placeholder="Mật khẩu (Tối thiểu 6 chữ)" class="auth-input">
+                <input type="text" id="regOtp" placeholder="Nhập mã OTP 6 số từ Email" class="auth-input" style="text-align: center; letter-spacing: 2px; font-weight: bold; color: #ff416c;">
+                <button id="submitRegisterBtn" class="btn-modal btn-confirm" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 15px;">Xác nhận Đăng ký <i class="fas fa-user-plus"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="customToast"></div>
+
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
 </html>

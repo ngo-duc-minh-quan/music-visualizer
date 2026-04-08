@@ -1,36 +1,72 @@
-.karaoke-container {
+/* --- static/css/lyrics.css --- */
+
+#karaoke-container {
     position: absolute;
-    bottom: 180px;      /* Nằm trên thanh điều khiển một chút */
-    left: 50%;
-    transform: translateX(-50%); /* Căn giữa màn hình */
-    width: 80%;         /* Chiều rộng khung chữ */
-    height: 150px;      /* Chiều cao vùng hiển thị */
-    overflow: hidden;   /* Giấu các dòng chữ thừa đi */
-    text-align: center;
-    z-index: 5;         /* Nổi lên trên hình nền */
-    pointer-events: none; /* Cho phép bấm xuyên qua */
+    top: 50%;           /* Căn giữa theo chiều dọc */
+    right: 40px;        /* Cách lề phải 40px */
+    transform: translateY(-50%); /* Cân chỉnh chính xác giữa dọc */
     
-    /* Hiệu ứng làm mờ 2 đầu trên dưới cho chuyên nghiệp */
-    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    width: 320px;       /* Gọn gàng hơn (320px) */
+    height: 60vh;       /* Chiều cao chiếm 60% màn hình */
+    max-height: 500px;
+    
+    /* Giao diện kính mờ bên phải */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    
+    z-index: 50; 
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    
+    /* Làm mờ 2 đầu trên dưới để chữ trượt ảo diệu */
+    mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
 }
 
-/* Dòng lyric bình thường (Chưa hát đến) */
+/* Vùng chứa các dòng chữ trượt */
+#lyrics-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding: 0 15px; /* Cách lề chữ 1 chút */
+    box-sizing: border-box;
+    
+    /* Căn giữa nội dung trong khung */
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+#lyrics-content::-webkit-scrollbar { display: none; }
+
+/* Dòng lyric bình thường */
 .lyric-line {
-    color: rgba(255, 255, 255, 0.3); /* Màu trắng mờ (30%) */
-    font-size: 18px;
-    margin: 12px 0;
+    color: rgba(255, 255, 255, 0.3); 
+    font-size: 16px; /* Chữ nhỏ lại một chút cho tinh tế */
+    margin: 18px 0;  /* Khoảng cách giữa các câu */
     font-weight: 500;
-    transition: all 0.4s ease-out; /* Hiệu ứng chuyển động mượt */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    font-family: 'Montserrat', sans-serif;
+    text-align: center;
+    cursor: pointer;
 }
 
-/* Dòng lyric ĐANG HÁT (Sáng rực rỡ) */
+/* Dòng lyric ĐANG HÁT */
 .lyric-line.active {
-    color: #ffe600;   /* Màu vàng chanh nổi bật */
-    font-size: 28px;  /* Chữ to hẳn lên */
-    font-weight: bold;
-    text-shadow: 0 0 15px rgba(255, 230, 0, 0.8); /* Phát sáng xung quanh */
-    transform: scale(1.1); /* Phóng to nhẹ */
+    color: #fff;   
+    font-size: 22px; /* To vừa phải */
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(255, 65, 108, 0.8); /* Đổi sang màu hồng neon cho hợp theme */
+    transform: scale(1.15); 
     opacity: 1;
+}
+
+.lyric-line.blur {
+    opacity: 0.15; /* Câu hát rồi thì mờ hẳn đi */
+    transform: scale(0.9);
 }

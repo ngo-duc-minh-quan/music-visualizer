@@ -1,18 +1,55 @@
 /* --- static/js/playlist.js --- */
-// Import hàm playTrack từ main (sẽ được gán vào window sau)
 let history = JSON.parse(localStorage.getItem("musicHistory")) || [];
 let playlist = JSON.parse(localStorage.getItem("musicPlaylist")) || [];
 
 export function getHistoryData() { return history; }
 export function getPlaylistData() { return playlist; }
 
-// --- RENDER GIAO DIỆN ---
+// ============================================================
+//  HÀM HIỂN THỊ MODAL ĐẸP (Thay thế confirm mặc định)
+// ============================================================
+function showCustomConfirm(message, callback) {
+    const modal = document.getElementById("customModal");
+    const msgEl = document.getElementById("modalMessage");
+    const btnCancel = document.getElementById("btnCancel");
+    const btnConfirm = document.getElementById("btnConfirm");
+
+    // Nếu quên chưa thêm HTML bên index.html thì dùng tạm cái cũ
+    if (!modal) {
+        if(confirm(message)) callback();
+        return;
+    }
+
+    // 1. Hiển thị nội dung
+    msgEl.textContent = message;
+    modal.classList.add("active");
+
+    // 2. Hàm đóng modal
+    const close = () => modal.classList.remove("active");
+    
+    // 3. Gán sự kiện cho nút
+    btnCancel.onclick = close;
+    
+    btnConfirm.onclick = () => {
+        close();
+        callback(); // Thực hiện hành động
+    };
+
+    // Bấm ra vùng đen bên ngoài cũng đóng modal
+    modal.onclick = (e) => {
+        if (e.target === modal) close();
+    };
+}
+
+// ============================================================
+// RENDER GIAO DIỆN (ĐÃ NÂNG CẤP ICON & STYLING)
+// ============================================================
+
 export function renderHistory() {
     const ul = document.getElementById("historyUl");
     if(!ul) return;
     ul.innerHTML = "";
     
-    // Kiểm tra nếu lịch sử trống
     if (history.length === 0) {
         ul.innerHTML = `<li style="color:#777;font-size:12px;text-align:center;padding:10px;">(Lịch sử trống)</li>`;
         return;
@@ -21,11 +58,20 @@ export function renderHistory() {
     history.forEach(item => {
         const li = document.createElement("li"); li.className = "history-item";
         const imgHtml = item.thumbnail ? `<img src="${item.thumbnail}">` : `<div>🎵</div>`;
-        li.innerHTML = `<div style="display:flex;align-items:center;flex:1;cursor:pointer;">${imgHtml} <div style="font-size:12px;margin-left:5px;">${item.title}</div></div><button class="add-btn" style="color:#0f0;">+</button>`;
         
-        // Gọi hàm playTrack toàn cục
+        // UPDATE: Layout Flexbox chuẩn + Nút Icon Add
+        li.innerHTML = `
+            <div style="display:flex;align-items:center;flex:1;cursor:pointer;overflow:hidden;">
+                ${imgHtml} 
+                <div style="font-size:12px;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
+            </div>
+            <button class="item-icon-btn add" title="Thêm vào Playlist"><i class="fas fa-plus-circle"></i></button>
+        `;
+        
         li.querySelector('div').onclick = () => window.playTrackGlobal(item.url, item.title, item.thumbnail, item.originalUrl, "history");
-        li.querySelector('.add-btn').onclick = (e) => { e.stopPropagation(); addToPlaylist(item); };
+        
+        // Bắt sự kiện nút thêm (class .add)
+        li.querySelector('.add').onclick = (e) => { e.stopPropagation(); addToPlaylist(item); };
         ul.appendChild(li);
     });
 }
@@ -39,14 +85,27 @@ export function renderPlaylist() {
     playlist.forEach((item, index) => {
         const li = document.createElement("li"); li.className = "history-item";
         const imgHtml = item.thumbnail ? `<img src="${item.thumbnail}">` : `<div>🎵</div>`;
-        li.innerHTML = `<div style="display:flex;align-items:center;flex:1;cursor:pointer;"><span style="color:#ffe600;font-size:10px;margin-right:5px;">${index+1}.</span>${imgHtml} <div style="font-size:12px;margin-left:5px;">${item.title}</div></div><button class="del-btn" style="color:#f55;">×</button>`;
+        
+        // UPDATE: Số thứ tự + Layout gọn + Nút Icon Delete
+        li.innerHTML = `
+            <div style="display:flex;align-items:center;flex:1;cursor:pointer;overflow:hidden;">
+                <span style="color:#ffe600;font-size:10px;margin-right:8px;min-width:15px;">${index+1}.</span>
+                ${imgHtml} 
+                <div style="font-size:12px;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
+            </div>
+            <button class="item-icon-btn del" title="Xóa khỏi Playlist"><i class="fas fa-trash"></i></button>
+        `;
         
         li.querySelector('div').onclick = () => window.playTrackGlobal(item.url, item.title, item.thumbnail, item.originalUrl, "playlist");
-        li.querySelector('.del-btn').onclick = (e) => { 
+        
+        // Bắt sự kiện nút xóa (class .del)
+        li.querySelector('.del').onclick = (e) => { 
             e.stopPropagation(); 
-            playlist.splice(index, 1); 
-            localStorage.setItem("musicPlaylist", JSON.stringify(playlist)); 
-            renderPlaylist(); 
+            showCustomConfirm("Bạn muốn xóa bài này khỏi Playlist?", () => {
+                playlist.splice(index, 1); 
+                localStorage.setItem("musicPlaylist", JSON.stringify(playlist)); 
+                renderPlaylist(); 
+            });
         };
         ul.appendChild(li);
     });
@@ -54,10 +113,10 @@ export function renderPlaylist() {
 
 // --- LOGIC DỮ LIỆU ---
 export function addToHistory(t, u, th, o) {
-    if (history.length > 0 && history[0].title === t) return; // Trùng bài đầu thì thôi
-    history = history.filter(h => h.title !== t); // Xóa bài trùng cũ
+    if (history.length > 0 && history[0].title === t) return;
+    history = history.filter(h => h.title !== t);
     history.unshift({ title: t, url: u, thumbnail: th, originalUrl: o });
-    if (history.length > 30) history.pop(); // Giới hạn 30 bài
+    if (history.length > 30) history.pop();
     localStorage.setItem("musicHistory", JSON.stringify(history));
     renderHistory();
 }
@@ -67,29 +126,31 @@ export function addToPlaylist(item) {
     playlist.push(item);
     localStorage.setItem("musicPlaylist", JSON.stringify(playlist));
     renderPlaylist();
-    // Hiệu ứng nút bấm
+    
+    // Hiệu ứng nút thêm chính (Main Button)
     const btn = document.getElementById("mainAddBtn");
     if(btn) { 
-        const i = btn.querySelector("i"); 
-        if(i) { i.className = "fas fa-check"; setTimeout(() => i.className = "fas fa-plus-circle", 1500); }
+        btn.innerHTML = '<i class="fas fa-check" style="color:#0f0;"></i>';
+        setTimeout(() => btn.innerHTML = '<i class="fas fa-plus-circle"></i>', 1500);
     }
 }
 
 export function clearPlaylist() {
-    if (confirm("Xóa hết Playlist?")) { 
+    if (playlist.length === 0) return;
+    showCustomConfirm("Bạn có chắc chắn muốn xóa TOÀN BỘ Playlist không?", () => { 
         playlist = []; 
         localStorage.setItem("musicPlaylist", "[]"); 
         renderPlaylist(); 
-    }
+    });
 }
 
-// 🔥 CẬP NHẬT MỚI: HÀM XÓA LỊCH SỬ 🔥
 export function clearHistory() {
-    if (confirm("Xóa toàn bộ lịch sử nghe nhạc?")) {
-        history = []; // Xóa biến trong RAM
-        localStorage.setItem("musicHistory", "[]"); // Xóa trong ổ cứng
-        renderHistory(); // Vẽ lại giao diện
-    }
+    if (history.length === 0) return;
+    showCustomConfirm("Xóa sạch lịch sử nghe nhạc nhé?", () => {
+        history = []; 
+        localStorage.setItem("musicHistory", "[]"); 
+        renderHistory(); 
+    });
 }
 
 // --- API TRENDING ---
