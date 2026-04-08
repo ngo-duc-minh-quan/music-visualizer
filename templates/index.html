@@ -48,26 +48,76 @@
         .party-group.active .party-select, .party-group.active #partyModeBtn { color: #ff416c; text-shadow: 0 0 10px rgba(255, 65, 108, 0.5); }
         .party-select option { background: #222; color: #fff; padding: 10px; }
 
-        .bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -2; opacity: 0; transition: opacity 2s ease; filter: blur(25px) brightness(0.4); pointer-events: none; }
-        .bg-video iframe { width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
-        
         .control-deck { transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         body.cinema-mode { cursor: none; } 
         body.cinema-mode .control-deck { opacity: 0; transform: translateY(50px); pointer-events: none; } 
 
-/* GIAO DIỆN ĐĂNG NHẬP & AVATAR */
-        .auth-box { width: 400px; padding: 40px 30px; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,65,108, 0.3); box-shadow: 0 0 20px rgba(255,65,108,0.2); border-radius: 15px; }
-        .auth-tabs { display: flex; justify-content: center; gap: 15px; border-bottom: 1px solid #444; padding-bottom: 12px; margin-bottom: 25px; }
-        .auth-tab { background: none; border: none; color: #888; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; padding: 8px 15px; }
-        .auth-tab.active { color: #ff416c; text-shadow: 0 0 8px rgba(255,65,108,0.6); border-bottom: 3px solid #ff416c; }
-        .auth-input { width: 100%; padding: 15px; margin-top: 18px; font-size: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-family: 'Montserrat', sans-serif; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .auth-input:focus { border-color: #ff416c; box-shadow: 0 0 10px rgba(255,65,108,0.3); }
+        /* CSS GỢI Ý TÌM KIẾM (AUTOCOMPLETE) */
+        .search-suggestions {
+            position: absolute; top: 100%; left: 0; width: 100%;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,65,108, 0.3); border-radius: 12px;
+            margin-top: 8px; z-index: 1000; max-height: 250px; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7); display: none;
+        }
+        .search-suggestions::-webkit-scrollbar { width: 6px; }
+        .search-suggestions::-webkit-scrollbar-thumb { background: rgba(255,65,108, 0.5); border-radius: 5px; }
+        .suggest-item {
+            padding: 12px 15px; color: #ddd; font-size: 13px; cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
+            display: flex; align-items: center;
+        }
+        .suggest-item:last-child { border-bottom: none; }
+        .suggest-item:hover, .suggest-item.active { background: rgba(255,65,108, 0.2); color: #fff; }
+
+        /* CSS VIDEO MODE FULL EXPERIENCE */
+        .bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -2; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); filter: blur(25px) brightness(0.4); pointer-events: none; display: flex; align-items: center; justify-content: center; }
+        .bg-video.video-mode-active {
+            opacity: 1 !important; filter: none !important; z-index: 50 !important;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
+        }
+        .bg-video.video-mode-active iframe {
+            width: 80vw !important; height: 45vw !important; 
+            min-height: unset !important; min-width: unset !important;
+            max-height: 75vh; pointer-events: auto !important;
+            border-radius: 12px; box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* GIAO DIỆN ĐĂNG NHẬP & AVATAR CỰC ĐẸP */
+        .auth-box { width: 400px; padding: 40px 30px; background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255, 0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5); border-radius: 20px; }
+        .auth-tabs { display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 25px; }
+        .auth-tab { background: none; border: none; color: #777; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; padding: 8px 15px; position: relative; }
+        .auth-tab.active { color: #fff; }
+        .auth-tab.active::after { content: ''; position: absolute; bottom: -13px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #ff416c, #00c6ff); border-radius: 3px; box-shadow: 0 0 10px rgba(255,65,108,0.5); }
+        .auth-input { width: 100%; padding: 15px; margin-top: 15px; font-size: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: #fff; font-family: 'Montserrat', sans-serif; outline: none; transition: 0.3s; box-sizing: border-box; }
+        .auth-input:focus { border-color: #00c6ff; background: rgba(255,255,255,0.08); box-shadow: 0 0 15px rgba(0,198,255,0.2); }
+        
+        .social-btn-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .btn-social { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease; color: white; }
+        .btn-google { background: #fff; color: #444; border: 1px solid #ddd; }
+        .btn-google:hover { background: #f1f1f1; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+        .btn-google img { width: 20px; height: 20px; }
+        .btn-facebook { background: #1877F2; }
+        .btn-facebook:hover { background: #166fe5; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(24,119,242,0.4); }
+        .btn-facebook i { font-size: 18px; }
+
+        .divider { display: flex; align-items: center; text-align: center; margin: 25px 0; color: #777; font-size: 12px; font-weight: 600; letter-spacing: 1px; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .divider:not(:empty)::before { margin-right: 15px; }
+        .divider:not(:empty)::after { margin-left: 15px; }
         
         .user-profile { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px 15px 5px 5px; border-radius: 30px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
         .user-profile:hover { background: rgba(255,255,255,0.1); border-color: #ff416c; }
         .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(45deg, #ff416c, #00c6ff); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 16px; animation: avatarPulse 2s infinite; }
         @keyframes avatarPulse { 0% {box-shadow: 0 0 0 0 rgba(255,65,108, 0.7);} 70% {box-shadow: 0 0 0 10px rgba(255,65,108, 0);} 100% {box-shadow: 0 0 0 0 rgba(255,65,108, 0);} }
     </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        window.firebaseModules = { initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider };
+    </script>
 </head>
 <body>
 
@@ -78,17 +128,16 @@
         <div id="sidePanel" class="side-panel">
             <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="margin:0;"><i class="fas fa-compass"></i> Khám phá</h3>
-                
                 <div id="userAuthSection">
                     <button id="openAuthBtn" class="btn-mode" style="background: linear-gradient(45deg, #ff416c, #ff8b41); border:none; font-weight:bold; margin:0;"><i class="fas fa-user-circle"></i> Đăng nhập</button>
                 </div>
-                
                 <button id="closePanelBtn"><i class="fas fa-times"></i></button>
             </div>
             
-            <div class="search-box" style="margin-top: 15px;">
-                <input type="text" id="searchInput" placeholder="Nhập tên bài hát...">
+            <div class="search-box" style="margin-top: 15px; position: relative;">
+                <input type="text" id="searchInput" placeholder="Nhập tên bài hát..." autocomplete="off">
                 <button id="searchBtn"><i class="fas fa-search"></i></button>
+                <div id="searchSuggestions" class="search-suggestions"></div>
             </div>
             <div id="loadingText" style="display:none; color:#ff416c; font-size:12px; margin:5px 0;">⏳ Đang tìm kiếm...</div>
 
@@ -102,7 +151,6 @@
 
             <div class="recommend-section">
                 <h3 style="color: #fff; margin-bottom: 10px; font-weight: 600; font-size: 15px;">🔥 Có thể bạn sẽ thích</h3>
-                
                 <div class="genre-selector">
                     <button class="genre-btn active" onclick="filterMusic('all', this)">🔥 Tất cả</button>
                     <button class="genre-btn" onclick="filterMusic('lofi', this)">☕ Lofi</button>
@@ -111,7 +159,6 @@
                     <button class="genre-btn" onclick="filterMusic('karaoke', this)">🎹 Karaoke</button>
                     <button class="genre-btn" onclick="filterMusic('remix', this)">🚀 Remix</button>
                 </div>
-
                 <div id="recommendLoading" style="color: #aaa; font-size: 14px; text-align: center;">
                     <i class="fas fa-circle-notch fa-spin"></i> Đang cập nhật nhạc hot...
                 </div>
@@ -135,13 +182,12 @@
                 </div>
                 <ul id="historyUl" class="music-list"></ul>
             </div>
-            
             <div style="height: 50px;"></div>
         </div>
 
         <div class="stage">
             <div class="bg-image" id="bgImage"></div>
-            <div class="bg-video"><iframe id="ytVideoBg" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
+            <div class="bg-video"><div id="ytVideoBg"></div></div>
             <div class="overlay"></div>
             
             <div class="visualizer-container">
@@ -174,6 +220,7 @@
                 </div>
 
                 <div class="voice-controls" style="display: flex; gap: 5px; justify-content: center; margin-top: 10px; flex-wrap: wrap;">
+                    <button id="toggleVideoModeBtn" class="btn-mode" style="background: linear-gradient(45deg, #00c6ff, #0072ff); font-weight: bold;"><i class="fas fa-tv"></i> Bật Xem MV</button>
                     <button onclick="changeVoice('original')" class="btn-mode">🎵 Gốc</button>
                     <button onclick="changeVoice('karaoke')" class="btn-mode">🎤 Karaoke</button>
                     <button onclick="changeVoice('vocal_only')" class="btn-mode">🗣️ Vocal</button>
@@ -188,17 +235,14 @@
             <div class="main-controls">
                 <div class="side-controls">
                     <button id="togglePanelBtn" class="btn-icon" title="Playlist & Menu"><i class="fas fa-bars"></i></button>
-                    
                     <div class="upload-btn-wrapper" title="Chọn nhạc máy tính">
                         <button class="btn-icon"><i class="fas fa-music"></i></button>
                         <input type="file" id="audioFile" accept="audio/*">
                     </div>
-                    
                     <div class="upload-btn-wrapper" title="Tải file Lời bài hát (.lrc)">
                         <button class="btn-icon" style="color:#00c6ff;"><i class="fas fa-closed-captioning"></i></button>
                         <input type="file" id="lrcFile" accept=".lrc, .txt">
                     </div>
-
                     <div class="upload-btn-wrapper" title="Đổi ảnh nền">
                         <button class="btn-icon"><i class="fas fa-image"></i></button>
                         <input type="file" id="imageFile" accept="image/*">
@@ -223,7 +267,6 @@
                             <option value="7" selected>✨ 7 màu</option>
                         </select>
                     </div>
-
                 </div>
             </div>
 
@@ -233,22 +276,18 @@
                     <input type="range" id="speedRange" min="0.5" max="1.5" step="0.05" value="1">
                     <span id="speedLabel" class="value-label">x1.0</span>
                 </div>
-
                 <div class="setting-group">
                     <i class="fas fa-volume-up" id="volumeIcon" title="Âm lượng (Phím: M)"></i>
                     <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
                 </div>
-                
                 <div class="setting-group" title="Chỉnh Bass (Âm trầm - Đập rung loa)">
                     <i class="fas fa-drum" style="color: #ff8b41;"></i>
                     <input type="range" id="bassSlider" min="-15" max="15" step="1" value="0">
                 </div>
-                
                 <div class="setting-group" title="Chỉnh Treble (Âm cao - Sáng giọng)">
                     <i class="fas fa-guitar" style="color: #00c6ff;"></i>
                     <input type="range" id="trebleSlider" min="-15" max="15" step="1" value="0">
                 </div>
-
                 <div class="setting-group">
                     <i class="fas fa-palette" title="Giao diện"></i>
                     <select id="themeSelect" class="custom-select">
@@ -276,27 +315,37 @@
 
     <div id="authModal" class="modal-overlay">
         <div class="modal-box auth-box" style="text-align: center; position: relative;">
-            <button id="closeAuthBtn" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:20px; cursor:pointer; transition:0.3s;"><i class="fas fa-times"></i></button>
-            
+            <button id="closeAuthBtn" style="position:absolute; top:15px; right:20px; background:none; border:none; color:#aaa; font-size:22px; cursor:pointer; transition:0.3s;"><i class="fas fa-times"></i></button>
             <div class="auth-tabs">
                 <button id="tabLogin" class="auth-tab active">Đăng nhập</button>
                 <button id="tabRegister" class="auth-tab">Đăng ký</button>
             </div>
+            <div class="social-btn-group">
+                <button id="btnGoogleLogin" class="btn-social btn-google">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
+                    Tiếp tục với Google
+                </button>
+                <button id="btnFacebookLogin" class="btn-social btn-facebook">
+                    <i class="fab fa-facebook-f"></i>
+                    Tiếp tục với Facebook
+                </button>
+            </div>
+            <div class="divider">HOẶC DÙNG EMAIL</div>
             
             <div id="loginFormBlock">
-                <input type="email" id="loginUser" placeholder="Email đăng nhập" class="auth-input">
+                <input type="email" id="loginUser" placeholder="Nhập Email của bạn" class="auth-input">
                 <input type="password" id="loginPass" placeholder="Mật khẩu" class="auth-input">
-                <button id="submitLoginBtn" class="btn-modal btn-confirm" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 15px;">Vào trong <i class="fas fa-arrow-right"></i></button>
+                <button id="submitLoginBtn" class="btn-modal btn-confirm" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 15px; border-radius: 12px; background: linear-gradient(45deg, #ff416c, #ff8b41); box-shadow: 0 5px 15px rgba(255,65,108,0.4);">Đăng nhập ngay <i class="fas fa-arrow-right"></i></button>
             </div>
             
             <div id="registerFormBlock" style="display: none;">
-                <div style="display: flex; gap: 8px; margin-top: 15px;">
-                    <input type="email" id="regEmail" placeholder="Địa chỉ Email của bạn" class="auth-input" style="margin-top: 0;">
-                    <button id="sendOtpBtn" class="btn-mode" style="margin: 0; padding: 0 15px; background: linear-gradient(45deg, #00c6ff, #0072ff); border: none; white-space: nowrap; font-weight: bold; border-radius: 8px;">Gửi Mã</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="email" id="regEmail" placeholder="Địa chỉ Email" class="auth-input" style="margin-top: 0;">
+                    <button id="sendOtpBtn" class="btn-mode" style="margin: 0; padding: 0 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px;">Gửi Mã</button>
                 </div>
-                <input type="password" id="regPass" placeholder="Mật khẩu (Tối thiểu 6 chữ)" class="auth-input">
-                <input type="text" id="regOtp" placeholder="Nhập mã OTP 6 số từ Email" class="auth-input" style="text-align: center; letter-spacing: 2px; font-weight: bold; color: #ff416c;">
-                <button id="submitRegisterBtn" class="btn-modal btn-confirm" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 15px;">Xác nhận Đăng ký <i class="fas fa-user-plus"></i></button>
+                <input type="password" id="regPass" placeholder="Tạo mật khẩu (Tối thiểu 6 chữ)" class="auth-input">
+                <input type="text" id="regOtp" placeholder="Nhập mã OTP 6 số" class="auth-input" style="text-align: center; letter-spacing: 3px; font-weight: bold; color: #00c6ff;">
+                <button id="submitRegisterBtn" class="btn-modal btn-confirm" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 15px; border-radius: 12px; background: linear-gradient(45deg, #00c6ff, #0072ff); box-shadow: 0 5px 15px rgba(0,198,255,0.4);">Tạo Tài Khoản <i class="fas fa-user-plus"></i></button>
             </div>
         </div>
     </div>
