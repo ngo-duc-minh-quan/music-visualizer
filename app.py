@@ -17,14 +17,12 @@ import glob
 from pydub import AudioSegment
 import google.generativeai as genai
 
-# ==============================================================================
-# 🔑 CẤU HÌNH API
-# ==============================================================================
+
 GOOGLE_API_KEY = "AIzaSyDgsXu6g86jzxtfap4srRYy6LdtBHLNwi4"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-SENDER_EMAIL = "email_cua_ban@gmail.com" # THAY BẰNG GMAIL CỦA BẠN
-SENDER_PASSWORD = "xxxx xxxx xxxx xxxx"  # THAY BẰNG APP PASSWORD MẬT KHẨU ỨNG DỤNG 16 SỐ
+SENDER_EMAIL = "email_cua_ban@gmail.com" 
+SENDER_PASSWORD = "xxxx xxxx xxxx xxxx"  
 
 otp_storage = {} 
 
@@ -40,9 +38,6 @@ app.secret_key = "newgen_music_super_secret_key_2026"
 
 MOBILE_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 
-# ==============================================================================
-# 🗄️ KHỞI TẠO DATABASE
-# ==============================================================================
 def init_db():
     conn = sqlite3.connect('newgen_music.db')
     c = conn.cursor()
@@ -53,9 +48,6 @@ def init_db():
 
 init_db() 
 
-# ==============================================================================
-# 🔐 CÁC API AUTH (ĐĂNG KÝ / ĐĂNG NHẬP / OTP / MXH)
-# ==============================================================================
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.json
@@ -164,9 +156,6 @@ def user_info():
     if 'user_id' in session: return jsonify({'logged_in': True, 'username': session['username']})
     return jsonify({'logged_in': False})
 
-# ==============================================================================
-# 🎵 CÁC API MUSIC (SEARCH, SUGGEST, AUDIO, LYRICS)
-# ==============================================================================
 @app.route('/')
 def index(): return render_template('index.html')
 
